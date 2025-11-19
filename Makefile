@@ -34,6 +34,37 @@ validate: kustomize ## Build all kustomize directories in the project
 	@echo ""
 	@echo "All kustomizations built successfully! ✓"
 
+.PHONY: apply
+apply: kustomize ## Apply kustomize directory as passed as argument
+	@echo "Applying kustomization $(FOLDER)..."
+	@if [ -z "$(FOLDER)" ]; then \
+		echo "Error: FOLDER variable is required. Usage: make apply FOLDER=<path>"; \
+		exit 1; \
+	fi
+	$(KUSTOMIZE) build $(FOLDER) | kubectl apply $(KUBECTL_FLAGS) -f -
+	@echo ""
+	@echo "Kustomization $(FOLDER) applied successfully! ✓"
+
+.PHONY: remove
+remove: kustomize ## Remove kustomize directory as passed as argument
+	@echo "Applying kustomization $(FOLDER)..."
+	@if [ -z "$(FOLDER)" ]; then \
+		echo "Error: FOLDER variable is required. Usage: make apply FOLDER=<path>"; \
+		exit 1; \
+	fi
+	$(KUSTOMIZE) build $(FOLDER) | kubectl delete $(KUBECTL_FLAGS) -f -
+
+.PHONY: remove-all-dependencies
+remove-all-dependencies:
+	@echo "Removing all dependencies..."
+	# @$(MAKE) remove FOLDER=dependencies
+	@bash ./scripts/remove-deps.sh
+	@echo "All dependencies removed successfully! ✓"
+
+.PHONY: dry-run
+dry-run: kustomize ## Dry run kustomize directory as passed as argument
+	@$(MAKE) apply FOLDER=$(FOLDER) KUBECTL_FLAGS="--dry-run=client -o yaml"
+
 .PHONY: clean
 clean:
 	rm -rf $(CLEANFILES)
