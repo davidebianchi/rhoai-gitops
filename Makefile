@@ -45,6 +45,11 @@ apply: kustomize ## Apply kustomize directory as passed as argument
 	@echo ""
 	@echo "Kustomization $(FOLDER) applied successfully! ✓"
 
+.PHONY: apply-and-verify-dependencies
+apply-and-verify-dependencies: kustomize ## Apply and verify dependencies
+	@$(MAKE) apply FOLDER=dependencies
+	@bash ./scripts/verify-dependencies.sh
+
 .PHONY: remove
 remove: kustomize ## Remove kustomize directory as passed as argument
 	@echo "Applying kustomization $(FOLDER)..."
@@ -57,8 +62,8 @@ remove: kustomize ## Remove kustomize directory as passed as argument
 .PHONY: remove-all-dependencies
 remove-all-dependencies:
 	@echo "Removing all dependencies..."
-	# @$(MAKE) remove FOLDER=dependencies
-	@bash ./scripts/remove-deps.sh
+	@$(MAKE) remove FOLDER=dependencies
+	@bash ./scripts/remove-dependencies.sh
 	@echo "All dependencies removed successfully! ✓"
 
 .PHONY: dry-run
