@@ -42,6 +42,7 @@ The repository is designed to be applied in **layers**, providing flexibility in
 | Operator | Purpose | Namespace | Required By |
 |----------|---------|-----------|-------------|
 | **Cert-Manager** | Automated certificate management and TLS provisioning | `cert-manager-operator` | Model Serving (Kueue, Ray) |
+| **Kueue** | Job queue for distributed workloads | `openshift-kueue-operator` | Model Serving (Ray) |
 
 ## Quick Start
 

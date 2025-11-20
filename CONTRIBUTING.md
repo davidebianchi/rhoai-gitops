@@ -13,8 +13,11 @@ Thank you for your interest in contributing to the OpenShift AI GitOps repositor
     - [Step 2: Create Required Manifests](#step-2-create-required-manifests)
     - [Step 3: Create Dependency Operator Directory](#step-3-create-dependency-operator-directory)
     - [Step 4: Update Operators Parent Kustomization](#step-4-update-operators-parent-kustomization)
-    - [Step 5: Document the Operator](#step-5-document-the-operator)
-    - [Step 6: Test Your Changes](#step-6-test-your-changes)
+    - [Step 5: Update scripts](#step-5-update-scripts)
+      - [Verify dependencies script](#verify-dependencies-script)
+      - [Remove dependencies script](#remove-dependencies-script)
+    - [Step 6: Document the Operator](#step-6-document-the-operator)
+    - [Step 7: Test Your Changes](#step-7-test-your-changes)
   - [Testing Your Changes](#testing-your-changes)
     - [Local Validation](#local-validation)
   - [Pull Requests](#pull-requests)
@@ -87,14 +90,28 @@ resources:
   - your-operator/  # Add this line
 ```
 
-### Step 5: Document the Operator
+### Step 5: Update scripts
+
+Update the `scripts/verify-dependencies.sh` and `scripts/remove-dependencies.sh` files to add your operator to the list of dependencies to verify and remove.
+
+#### Verify dependencies script
+
+Update the `scripts/verify-dependencies.sh` file to add your operator to the list of dependencies to verify.
+The base verification is based on the Subscription and CSV of the operator to be in Succeeded phase.
+It is possible to add additional verification for resources managed by the installed operator.
+
+#### Remove dependencies script
+
+If your operator does not add other resources, it is not necessary to update the remove scripts.
+
+### Step 6: Document the Operator
 
 Add documentation about your operator:
 
 1. Update `README.md` with operator information
 2. Add any special configuration requirements
 
-### Step 6: Test Your Changes
+### Step 7: Test Your Changes
 
 See [Testing Your Changes](#testing-your-changes) section below.
 
