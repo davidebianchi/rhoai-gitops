@@ -1,0 +1,19 @@
+{{- range $dep := .Values.dependencies -}}
+{{- $enabled := false -}}
+{{- if kindIs "string" $dep.enabled -}}
+  {{- $enabled = tpl $dep.enabled $ | trim | eq "true" -}}
+{{- else -}}
+  {{- $enabled = $dep.enabled -}}
+{{- end -}}
+{{- if $enabled }}
+---
+{{ include "olm.operator" (dict
+  "namespace" $dep.namespace
+  "name" $dep.subscription.name
+  "channel" $dep.subscription.channel
+  "source" $dep.subscription.source
+  "sourceNamespace" $dep.subscription.sourceNamespace
+  "installPlanApproval" $dep.subscription.installPlanApproval
+) }}
+{{- end }}
+{{- end -}}

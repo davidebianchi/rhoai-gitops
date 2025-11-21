@@ -1,0 +1,34 @@
+{{ if .Values.rhoai.enabled }}
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  labels:
+    app.kubernetes.io/name: datasciencecluster
+spec:
+  components:
+    dashboard:
+      managementState: "Removed"
+    aipipelines:
+      managementState: "Removed"
+    kserve:
+      managementState: "Removed"
+      nim:
+        managementState: "Removed"
+    kueue:
+      managementState: {{ if .Values.rhoai.components.kueue.enabled }}"Unmanaged"{{ else }}"Removed"{{ end }}
+    trainingoperator:
+      managementState: "Removed"
+    ray:
+      managementState: "Removed"
+    workbenches:
+      managementState: "Removed"
+    trustyai:
+      managementState: "Removed"
+    modelregistry:
+      managementState: "Removed"
+    feastoperator:
+      managementState: "Removed"
+    llamastackoperator:
+      managementState: "Removed"
+{{ end }}

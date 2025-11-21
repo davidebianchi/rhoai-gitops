@@ -1,0 +1,10 @@
+{{- if .Values.rhoai.enabled -}}
+{{ include "olm.operator" (dict
+  "namespace" "redhat-ods-operator"
+  "name" "rhods-operator"
+  "channel" "fast-3.x"
+  "source" "redhat-operators"
+  "sourceNamespace" "openshift-marketplace"
+  "installPlanApproval" "Automatic"
+) }}
+{{- end -}}

@@ -1,0 +1,15 @@
+{{ if .Values.rhoai.enabled }}
+apiVersion: dscinitialization.opendatahub.io/v2
+kind: DSCInitialization
+metadata:
+  labels:
+    app.kubernetes.io/name: dscinitialization
+  name: default-dsci
+spec:
+  monitoring:
+    managementState: {{ if .Values.rhoai.services.monitoring.enabled }}"Managed"{{ else }}"Removed"{{ end }}
+    metrics: {}
+  trustedCABundle:
+    managementState: "Removed"
+    customCABundle: ""
+{{ end }}
