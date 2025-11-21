@@ -19,7 +19,7 @@ Parameters:
 {{- $source := default "redhat-operators" .source -}}
 {{- $sourceNamespace := default "openshift-marketplace" .sourceNamespace -}}
 {{- $installPlanApproval := default "Automatic" .installPlanApproval -}}
-{{- $operatorGroupName := default $namespace .operatorGroupName -}}
+{{- $operatorGroupName := required "operatorGroupName is required" .operatorGroupName -}}
 apiVersion: v1
 kind: Namespace
 metadata:

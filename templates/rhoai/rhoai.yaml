@@ -6,5 +6,6 @@
   "source" "redhat-operators"
   "sourceNamespace" "openshift-marketplace"
   "installPlanApproval" "Automatic"
+  "operatorGroupName" "redhat-ods-operator"
 ) }}
 {{- end -}}

@@ -15,24 +15,28 @@ dependencies:
   - name: cert-manager
     enabled: "{{ .Values.rhoai.components.kueue.enabled }}"
     namespace: cert-manager-operator
+    operatorGroupName: cert-manager-operator
     subscription:
       name: openshift-cert-manager-operator
       channel: stable-v1
   - name: kueue
     enabled: "{{ .Values.rhoai.components.kueue.enabled }}"
     namespace: openshift-kueue-operator
+    operatorGroupName: kueue-operator
     subscription:
       name: kueue-operator
       channel: stable-v1.1
   - name: opentelemetry-product
     enabled: "{{ .Values.rhoai.services.monitoring.enabled }}"
     namespace: openshift-opentelemetry-operator
+    operatorGroupName: openshift-opentelemetry-operator
     subscription:
       name: opentelemetry-product
       channel: stable
   - name: cluster-observability-operator
     enabled: "{{ .Values.rhoai.services.monitoring.enabled }}"
     namespace: openshift-cluster-observability-operator
+    operatorGroupName: cluster-observability-operator
     subscription:
       name: cluster-observability-operator
       channel: stable

@@ -14,6 +14,7 @@
   "source" $dep.subscription.source
   "sourceNamespace" $dep.subscription.sourceNamespace
   "installPlanApproval" $dep.subscription.installPlanApproval
+  "operatorGroupName" $dep.operatorGroupName
 ) }}
 {{- end }}
 {{- end -}}
