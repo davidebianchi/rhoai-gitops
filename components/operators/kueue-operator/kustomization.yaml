@@ -1,5 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
+metadata:
+  name: kueue-operator
+  annotations:
+    dependency.rhoai.io/requires: "cert-manager"
 
 resources:
   - namespace.yaml
