@@ -43,6 +43,7 @@ The repository is designed to be applied in **layers**, providing flexibility in
 | **Kueue** | Job queue for distributed workloads | `openshift-kueue-operator` | Model Serving (Ray), Trainer | Cert-Manager |
 | **Cluster Observability Operator** | Cluster observability and monitoring | `openshift-cluster-observability-operator` | Monitoring | |
 | **OpenTelemetry Product** | OpenTelemetry product | `openshift-opentelemetry-operator` | Monitoring | |
+| **Leader Worker Set** | Deploy a LWS in OpenShift for distributed inference workflows | `openshift-lws-operator` | Model Server | Cert-Manager |
 
 #### Adding New Dependencies
 
