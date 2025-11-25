@@ -1,0 +1,103 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kuadrant-post-install
+  namespace: kuadrant-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kuadrant-post-install
+  namespace: kuadrant-system
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "patch", "update"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["operator.authorino.kuadrant.io"]
+    resources: ["authorinos"]
+    verbs: ["get", "list", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kuadrant-post-install
+  namespace: kuadrant-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kuadrant-post-install
+subjects:
+  - kind: ServiceAccount
+    name: kuadrant-post-install
+    namespace: kuadrant-system
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kuadrant-post-install
+  namespace: kuadrant-system
+spec:
+  backoffLimit: 10
+  ttlSecondsAfterFinished: 60
+  template:
+    metadata:
+      name: kuadrant-post-install
+    spec:
+      serviceAccountName: kuadrant-post-install
+      restartPolicy: OnFailure
+      containers:
+        - name: post-install
+          image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+          volumeMounts:
+            - name: authorino-config
+              mountPath: /config
+              readOnly: true
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+
+              echo "Waiting for Authorino service to be created..."
+              timeout=300
+              while ! oc get svc/authorino-authorino-authorization -n kuadrant-system &>/dev/null && [ $timeout -gt 0 ]; do
+                  echo "Waiting for authorino-authorino-authorization service... ($timeout seconds remaining)"
+                  sleep 5
+                  ((timeout-=5))
+              done
+
+              if [ $timeout -le 0 ]; then
+                  echo "ERROR: Timeout waiting for Authorino service"
+                  exit 1
+              fi
+
+              echo "Authorino service found. Configuring SSL by applying an annotation to the Authorino service..."
+              oc annotate svc/authorino-authorino-authorization \
+                service.beta.openshift.io/serving-cert-secret-name=authorino-server-cert \
+                -n kuadrant-system --overwrite
+
+              echo "Waiting for SSL certificate secret to generate..."
+              timeout=120
+              while ! oc get secret authorino-server-cert -n kuadrant-system &>/dev/null && [ $timeout -gt 0 ]; do
+                  echo "Waiting for authorino-server-cert secret... ($timeout seconds remaining)"
+                  sleep 5
+                  ((timeout-=5))
+              done
+
+              if [ $timeout -le 0 ]; then
+                  echo "ERROR: Timeout waiting for secret creation"
+                  exit 1
+              fi
+
+              echo "Secret created. Applying Authorino SSL configuration..."
+              oc apply -f /config/ssl-authorino.yaml
+
+              echo "SSL Authorino configuration completed successfully!"
+      volumes:
+        - name: authorino-config
+          configMap:
+            name: authorino-ssl-config

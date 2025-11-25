@@ -28,6 +28,7 @@ declare -A OPERATORS=(
     [leader-worker-set]="openshift-lws-operator name=openshift-lws-operator"
     [job-set]="openshift-jobset-operator name=jobset-operator"
     [tempo-product]="openshift-tempo-operator app.kubernetes.io/name=tempo-operator"
+    [rhcl-operator]="kuadrant-system app=kuadrant"
 )
 
 
@@ -185,3 +186,23 @@ if ! wait_for_resource "openshift-tempo-operator" "pods" "app.kubernetes.io/part
     exit 1
 fi
 echo "✓ tempo-operator pods are running"
+
+# rhcl-operator: Verify pods are running
+echo "Checking rhcl-operator pods..."
+# check kuadrant-console-plugin pods
+if ! wait_for_resource "kuadrant-system" "pods" "app=kuadrant-console-plugin"; then
+    exit 1
+fi
+# check authorino-operator pods
+if ! wait_for_resource "kuadrant-system" "pods" "control-plane=authorino-operator"; then
+    exit 1
+fi
+# check dns-operator-controller pods
+if ! wait_for_resource "kuadrant-system" "pods" "control-plane=dns-operator-controller-manager"; then
+    exit 1
+fi
+# check limitador-operator pods
+if ! wait_for_resource "kuadrant-system" "pods" "control-plane=controller-manager"; then
+    exit 1
+fi
+echo "✓ rhcl-operator pods are running"
