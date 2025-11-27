@@ -7,6 +7,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   validation:
     name: Static Validation
@@ -89,6 +93,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v3
         with:
           mode: recreate
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           message: |
             ## Tier 1 Validation Results (GitHub Actions)
 
