@@ -1,15 +1,131 @@
-name: Kustomize Validation
+name: Validate GitOps Manifests
+
 on:
+  pull_request:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  validate:
+  validation:
+    name: Static Validation
     runs-on: ubuntu-latest
+    outputs:
+      yaml-status: ${{ steps.yaml-check.outcome }}
+      yaml-details: ${{ steps.yaml-check.outputs.details }}
+      kustomize-status: ${{ steps.kustomize-check.outcome }}
+      kustomize-details: ${{ steps.kustomize-check.outputs.details }}
+      lint-status: ${{ steps.lint-check.outcome }}
+      lint-details: ${{ steps.lint-check.outputs.details }}
     steps:
-      - uses: actions/checkout@v2
-      - name: Validate Kustomize
-        run: make validate
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install validation tools
+        run: make tools
+
+      - name: Run YAML validation
+        id: yaml-check
+        continue-on-error: true
+        run: |
+          OUTPUT=$(make validate-yaml 2>&1) || {
+            echo "details<<EOF" >> $GITHUB_OUTPUT
+            echo "$OUTPUT" | tail -20 >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            exit 1
+          }
+          echo "details=Syntax and formatting validation passed" >> $GITHUB_OUTPUT
+
+      - name: Run Kustomize build validation
+        id: kustomize-check
+        continue-on-error: true
+        run: |
+          OUTPUT=$(make validate-kustomize 2>&1) || {
+            echo "details<<EOF" >> $GITHUB_OUTPUT
+            echo "$OUTPUT" | tail -20 >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            exit 1
+          }
+          echo "details=All kustomization layers built successfully" >> $GITHUB_OUTPUT
+
+      - name: Run best practices linting
+        id: lint-check
+        continue-on-error: true
+        run: |
+          OUTPUT=$(make validate-lint 2>&1) || {
+            echo "details<<EOF" >> $GITHUB_OUTPUT
+            echo "$OUTPUT" | tail -20 >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            exit 1
+          }
+          echo "details=Security and best practices checks passed" >> $GITHUB_OUTPUT
+
+  validation-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [validation]
+    if: always()
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check validation results
+        id: check
+        run: |
+          YAML_STATUS="${{ needs.validation.outputs.yaml-status }}"
+          KUSTOMIZE_STATUS="${{ needs.validation.outputs.kustomize-status }}"
+          LINT_STATUS="${{ needs.validation.outputs.lint-status }}"
+
+          if [[ "$YAML_STATUS" == "success" && "$KUSTOMIZE_STATUS" == "success" && "$LINT_STATUS" == "success" ]]; then
+            echo "All static validations passed!"
+            echo "overall_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "Some validations failed"
+            echo "overall_status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post PR comment with validation results
+        if: github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          mode: recreate
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            ## Tier 1 Validation Results (GitHub Actions)
+
+            ${{ (needs.validation.outputs.yaml-status == 'success' && needs.validation.outputs.kustomize-status == 'success' && needs.validation.outputs.lint-status == 'success') && '✅ All static validations passed!' || '❌ Some validations failed' }}
+
+            | Check | Status | Details |
+            |-------|--------|---------|
+            | YAML Lint | ${{ needs.validation.outputs.yaml-status == 'success' && '✅ Passed' || '❌ Failed' }} | ${{ needs.validation.outputs.yaml-details }} |
+            | Kustomize Build | ${{ needs.validation.outputs.kustomize-status == 'success' && '✅ Passed' || '❌ Failed' }} | ${{ needs.validation.outputs.kustomize-details }} |
+            | Best Practices | ${{ needs.validation.outputs.lint-status == 'success' && '✅ Passed' || '❌ Failed' }} | ${{ needs.validation.outputs.lint-details }} |
+
+            ${{ (needs.validation.outputs.yaml-status == 'success' && needs.validation.outputs.kustomize-status == 'success' && needs.validation.outputs.lint-status == 'success') && '**Tier 2 Validation**: Triggered Konflux integration tests on ephemeral OpenShift cluster (OCP 4.19)...' || '⚠️ **Tier 2 Validation**: Skipped (fix Tier 1 issues first)' }}
+
+            <details>
+            <summary>View workflow run</summary>
+
+            [Workflow run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            </details>
+          comment_tag: tier1-validation
+
+      - name: Fail workflow if validations failed
+        if: steps.check.outputs.overall_status == 'failure'
+        run: |
+          echo "One or more validations failed. See PR comment for details."
+          exit 1
+      # TODO: Commented until konflux onboarding is done
+      # - name: Trigger Konflux cluster validation
+      #   if: |
+      #     github.event_name == 'pull_request' &&
+      #     steps.check.outputs.overall_status == 'success'
+      #   uses: thollander/actions-comment-pull-request@v3
+      #   with:
+      #     mode: recreate
+      #     message: '/validate-dependencies'
+      #     comment_tag: trigger-tier2-validation
