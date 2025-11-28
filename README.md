@@ -50,6 +50,7 @@ The repository is designed to be applied in **layers**, providing flexibility in
 | **Leader Worker Set** | Deploy a LWS in OpenShift for distributed inference workflows | `openshift-lws-operator` | Model Server | Cert-Manager |
 | **Job Set Operator**               | Job management as a unit                    | `openshift-jobset-operator` | Trainer                      | |
 | **Tempo Operator** | Distributed tracing backend | `openshift-tempo-operator` | Tracing infrastructure | |
+| **Red Hat Connectivity Link** | Multicloud application connectivity and API management | `kuadrant-system` | Model Serving (KServe) | Leader Worker Set, Cert-Manager |
 
 #### Operator Configuration Requirements
 
