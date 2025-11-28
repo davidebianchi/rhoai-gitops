@@ -27,6 +27,7 @@ declare -A OPERATORS=(
     [opentelemetry-product]="openshift-opentelemetry-operator app.kubernetes.io/name=opentelemetry-operator"
     [leader-worker-set]="openshift-lws-operator name=openshift-lws-operator"
     [job-set-operator]="openshift-jobset-operator name=jobset-operator"
+    [tempo-operator]="openshift-tempo-operator app.kubernetes.io/name=tempo-operator"
 )
 
 
@@ -177,3 +178,10 @@ if ! wait_for_resource "openshift-cluster-observability-operator" "pods" "app.ku
     exit 1
 fi
 echo "✓ cluster-observability-operator pods are running"
+
+# tempo-operator: Verify pods are running
+echo "Checking tempo-operator pods..."
+if ! wait_for_resource "openshift-tempo-operator" "pods" "app.kubernetes.io/part-of=tempo-operator"; then
+    exit 1
+fi
+echo "✓ tempo-operator pods are running"

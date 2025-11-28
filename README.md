@@ -49,7 +49,42 @@ The repository is designed to be applied in **layers**, providing flexibility in
 | **OpenTelemetry Product**          | OpenTelemetry product                       | `openshift-opentelemetry-operator` | Monitoring                   | |
 | **Leader Worker Set** | Deploy a LWS in OpenShift for distributed inference workflows | `openshift-lws-operator` | Model Server | Cert-Manager |
 | **Job Set Operator**               | Job management as a unit                    | `openshift-jobset-operator` | Trainer                      | |
+| **Tempo Operator** | Distributed tracing backend | `openshift-tempo-operator` | Tracing infrastructure | |
 
+#### Operator Configuration Requirements
+
+Some operators require additional configuration. Below are the configuration requirements for each operator:
+
+##### Tempo Operator
+
+The Tempo Operator requires object storage configuration and a custom resource (**TempoStack** or **TempoMonolithic**) to be created after the operator is installed.
+
+#### Configuration Steps:
+
+1. Follow the [Red Hat Distributed Tracing Platform Documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html/distributed_tracing/distr-tracing-tempo-installing) to:
+   - Set up object storage (S3, GCS, or Azure)
+   - Create the storage secret
+   - Create a TempoStack or TempoMonolithic custom resource
+
+2. Place your Tempo configuration manifests in the `configurations/tempo-operator/` directory
+
+3. Create a `kustomization.yaml` file in `configurations/tempo-operator/` that includes your manifests:
+   ```yaml
+   apiVersion: kustomize.config.k8s.io/v1beta1
+   kind: Kustomization
+   
+   resources:
+     - namespace.yaml
+     - tempo-storage-secret.yaml
+     - tempostack.yaml  # or tempomonolithic.yaml
+   ```
+
+4. Update `configurations/kustomization.yaml` to include the tempo-operator directory:
+   ```yaml
+   resources:
+     - kueue-operator
+     - tempo-operator
+   ```
 
 #### Adding New Dependencies
 

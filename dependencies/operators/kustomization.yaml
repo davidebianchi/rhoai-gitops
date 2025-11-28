@@ -8,3 +8,4 @@ components:
   - ../../components/operators/opentelemetry-product
   - ../../components/operators/leader-worker-set
   - ../../components/operators/job-set-operator
+  - ../../components/operators/tempo-product
