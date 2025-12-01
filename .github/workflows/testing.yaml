@@ -93,7 +93,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v3
         with:
           mode: recreate
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          comment-tag: tier1-validation
           message: |
             ## Tier 1 Validation Results (GitHub Actions)
 
@@ -112,13 +112,13 @@ jobs:
 
             [Workflow run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             </details>
-          comment_tag: tier1-validation
 
       - name: Fail workflow if validations failed
         if: steps.check.outputs.overall_status == 'failure'
         run: |
-          echo "One or more validations failed. See PR comment for details."
+          echo "One or more validations failed. See validation comment on PR for details."
           exit 1
+
       # TODO: Commented until konflux onboarding is done
       # - name: Trigger Konflux cluster validation
       #   if: |
@@ -127,5 +127,5 @@ jobs:
       #   uses: thollander/actions-comment-pull-request@v3
       #   with:
       #     mode: recreate
+      #     comment-tag: trigger-tier2-validation
       #     message: '/validate-dependencies'
-      #     comment_tag: trigger-tier2-validation
